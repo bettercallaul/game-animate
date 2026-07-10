@@ -1,5 +1,6 @@
 const canvas = document.querySelector("#game");
 const ctx = canvas.getContext("2d", { alpha: false });
+const fullscreenButton = document.querySelector("#fullscreenButton");
 ctx.imageSmoothingEnabled = false;
 
 const W = canvas.width;
@@ -267,6 +268,7 @@ const audioState = {
 const buttons = [];
 let routePulse = 0;
 let last = performance.now();
+let lastTouchScreen = "";
 
 function loadImage(key, src) {
   return new Promise((resolve) => {
@@ -1603,6 +1605,10 @@ function loop(now) {
   const dt = Math.min(0.033, (now - last) / 1000);
   last = now;
   buttons.length = 0;
+  if (state.screen !== lastTouchScreen) {
+    lastTouchScreen = state.screen;
+    document.body.classList.toggle("is-playing", state.screen === "play");
+  }
   update(dt);
   draw();
   requestAnimationFrame(loop);
@@ -1625,10 +1631,37 @@ function pointerPos(evt) {
   };
 }
 
+function isTouchDevice() {
+  return navigator.maxTouchPoints > 0 || window.matchMedia("(pointer: coarse)").matches;
+}
+
+async function enterImmersiveMode() {
+  if (!isTouchDevice()) return;
+  if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+    try {
+      await document.documentElement.requestFullscreen({ navigationUI: "hide" });
+    } catch {
+      // Some mobile browsers only allow fullscreen after a second explicit tap.
+    }
+  }
+  if (screen.orientation?.lock) {
+    try {
+      await screen.orientation.lock("landscape");
+    } catch {
+      // Orientation lock support varies by browser and device.
+    }
+  }
+}
+
+function syncFullscreenState() {
+  document.body.classList.toggle("is-fullscreen", Boolean(document.fullscreenElement));
+  fullscreenButton?.setAttribute("aria-pressed", String(Boolean(document.fullscreenElement)));
+}
+
 canvas.addEventListener("pointerdown", async (evt) => {
   const p = pointerPos(evt);
   const hit = buttons.find((b) => p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h);
-  await unlockAudio();
+  await Promise.allSettled([enterImmersiveMode(), unlockAudio()]);
   if (hit) {
     playSfx("sfxButton");
     hit.action();
@@ -1643,6 +1676,13 @@ document.addEventListener("visibilitychange", () => {
   } else if (audioState.target && audioState.unlocked) {
     playBgm(audioState.target);
   }
+});
+
+document.addEventListener("fullscreenchange", syncFullscreenState);
+fullscreenButton?.addEventListener("pointerdown", async (evt) => {
+  evt.preventDefault();
+  evt.stopPropagation();
+  await enterImmersiveMode();
 });
 
 window.addEventListener("keydown", async (evt) => {
@@ -1680,7 +1720,7 @@ document.querySelectorAll("#touchControls button").forEach((btn) => {
   const tap = btn.dataset.tap;
   btn.addEventListener("pointerdown", async (evt) => {
     evt.preventDefault();
-    await unlockAudio();
+    await Promise.allSettled([enterImmersiveMode(), unlockAudio()]);
     if (audioState.target) playBgm(audioState.target);
     if (hold) state.keys.add(hold);
     if (tap) state.keys.add(tap);

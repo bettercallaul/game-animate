@@ -1,20 +1,28 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#173034" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>MBG Food Delivery</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="stylesheet" href="./src/styles.css" />
   </head>
   <body>
     <main id="shell">
       <canvas id="game" width="1280" height="720" aria-label="MBG Food Delivery game"></canvas>
-      <div id="touchControls" aria-hidden="true">
-        <button data-hold="left">Left</button>
-        <button data-hold="up">Up</button>
-        <button data-hold="right">Right</button>
-        <button data-hold="down">Down</button>
-        <button data-tap="boost">Boost</button>
+      <button id="fullscreenButton" type="button" aria-label="Layar penuh" title="Layar penuh">&#x26F6;</button>
+      <div id="touchControls">
+        <div class="directionPad">
+          <button class="up" data-hold="up" aria-label="Maju">&uarr;</button>
+          <button class="left" data-hold="left" aria-label="Belok kiri">&larr;</button>
+          <button class="down" data-hold="down" aria-label="Mundur">&darr;</button>
+          <button class="right" data-hold="right" aria-label="Belok kanan">&rarr;</button>
+        </div>
+        <button class="boost" data-tap="boost">Boost</button>
       </div>
     </main>
     <script type="module" src="./src/game.js"></script>

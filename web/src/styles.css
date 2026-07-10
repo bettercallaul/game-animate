@@ -3,6 +3,7 @@
   --ink: #f9f4df;
   --panel: rgba(22, 31, 34, 0.78);
   --line: rgba(255, 255, 255, 0.32);
+  --control-size: clamp(48px, 11vmin, 66px);
 }
 
 * {
@@ -15,6 +16,7 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
+  min-height: 100dvh;
   overflow: hidden;
   background: #162125;
   color: var(--ink);
@@ -24,6 +26,8 @@ body {
 #shell {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100dvh;
   display: grid;
   place-items: center;
   background:
@@ -32,8 +36,8 @@ body {
 }
 
 #game {
-  width: min(100vw, calc(100vh * 16 / 9));
-  height: min(100vh, calc(100vw * 9 / 16));
+  width: min(100vw, calc(100dvh * 16 / 9));
+  height: min(100dvh, calc(100vw * 9 / 16));
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   background: #79a7a1;
@@ -43,23 +47,75 @@ body {
 
 #touchControls {
   position: fixed;
-  inset: auto 18px max(14px, env(safe-area-inset-bottom)) 18px;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(54px, 74px));
-  gap: 10px;
-  justify-content: space-between;
+  inset: 0;
+  z-index: 3;
+  opacity: 0;
+  visibility: hidden;
   pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+body.is-playing #touchControls {
+  opacity: 1;
+  visibility: visible;
+}
+
+.directionPad {
+  position: absolute;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: repeat(3, var(--control-size));
+  grid-template-rows: repeat(3, var(--control-size));
+  gap: 4px;
+  width: calc(var(--control-size) * 3 + 8px);
+  height: calc(var(--control-size) * 3 + 8px);
+}
+
+.directionPad .up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.directionPad .left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.directionPad .down {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.directionPad .right {
+  grid-column: 3;
+  grid-row: 2;
 }
 
 #touchControls button {
-  min-height: 52px;
-  border: 3px solid rgba(255, 255, 255, 0.82);
+  width: var(--control-size);
+  height: var(--control-size);
+  border: 2px solid rgba(255, 255, 255, 0.72);
   border-radius: 8px;
-  background: rgba(19, 35, 38, 0.7);
+  background: rgba(19, 35, 38, 0.76);
   color: var(--ink);
-  font: 700 13px/1 system-ui, sans-serif;
+  font: 800 clamp(20px, 5vmin, 30px)/1 system-ui, sans-serif;
   pointer-events: auto;
-  box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.22);
+  touch-action: none;
+  user-select: none;
+}
+
+#touchControls .boost {
+  position: absolute;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(22px, env(safe-area-inset-bottom));
+  width: clamp(70px, 17vmin, 102px);
+  height: clamp(70px, 17vmin, 102px);
+  border-radius: 50%;
+  border-color: #f7cf4a;
+  color: #fff4c6;
+  font-size: clamp(12px, 2.8vmin, 17px);
 }
 
 #touchControls button:active {
@@ -67,8 +123,44 @@ body {
   box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
 }
 
+#fullscreenButton {
+  display: none;
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 5;
+  width: 48px;
+  height: 48px;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  border-radius: 8px;
+  background: rgba(19, 35, 38, 0.82);
+  color: var(--ink);
+  font: 800 28px/1 system-ui, sans-serif;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  touch-action: manipulation;
+}
+
+body.is-fullscreen #fullscreenButton {
+  display: none;
+}
+
+:fullscreen #shell {
+  background: #10191c;
+}
+
+:fullscreen #game {
+  box-shadow: none;
+}
+
+@media (hover: none), (pointer: coarse) {
+  #fullscreenButton {
+    display: block;
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
-  #touchControls {
+  #touchControls,
+  #fullscreenButton {
     display: none;
   }
 }
