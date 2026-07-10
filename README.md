@@ -51,4 +51,4 @@ npx vercel --prod
 
 Konfigurasi deployment berada di `vercel.json`, dengan hasil build di `dist/`.
 
-Production: https://mbg-delivery.vercel.app
+Production: https://mbg-food-delivery.vercel.app
