@@ -1,0 +1,34 @@
+.agents/
+AGENT_HANDOFF.md
+tmp/
+
+# Third-party/local experiment workspace, not required to run the browser game.
+ai4animationpy-main/
+
+# Local dependencies and generated files.
+node_modules/
+dist/
+build/
+.cache/
+.parcel-cache/
+.vite/
+
+# Python/virtualenv artifacts.
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Logs and local environment.
+*.log
+.env
+.env.*
+
+# OS/editor noise.
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Accidental analysis files inside assets.
+asset/sound/*.xlsx

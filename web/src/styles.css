@@ -1,0 +1,74 @@
+:root {
+  color-scheme: dark;
+  --ink: #f9f4df;
+  --panel: rgba(22, 31, 34, 0.78);
+  --line: rgba(255, 255, 255, 0.32);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #162125;
+  color: var(--ink);
+  font-family: "Trebuchet MS", system-ui, sans-serif;
+}
+
+#shell {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(72, 172, 156, 0.2), transparent 28%),
+    linear-gradient(135deg, #1c3135, #10191c 62%, #11181d);
+}
+
+#game {
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: min(100vh, calc(100vw * 9 / 16));
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: #79a7a1;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.45);
+  touch-action: none;
+}
+
+#touchControls {
+  position: fixed;
+  inset: auto 18px max(14px, env(safe-area-inset-bottom)) 18px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(54px, 74px));
+  gap: 10px;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+#touchControls button {
+  min-height: 52px;
+  border: 3px solid rgba(255, 255, 255, 0.82);
+  border-radius: 8px;
+  background: rgba(19, 35, 38, 0.7);
+  color: var(--ink);
+  font: 700 13px/1 system-ui, sans-serif;
+  pointer-events: auto;
+  box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.25);
+}
+
+#touchControls button:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #touchControls {
+    display: none;
+  }
+}

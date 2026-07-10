@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>MBG Food Delivery</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <main id="shell">
+      <canvas id="game" width="1280" height="720" aria-label="MBG Food Delivery game"></canvas>
+      <div id="touchControls" aria-hidden="true">
+        <button data-hold="left">Left</button>
+        <button data-hold="up">Up</button>
+        <button data-hold="right">Right</button>
+        <button data-hold="down">Down</button>
+        <button data-tap="boost">Boost</button>
+      </div>
+    </main>
+    <script type="module" src="./src/game.js"></script>
+  </body>
+</html>
