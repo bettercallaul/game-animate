@@ -1,0 +1,8 @@
+.agents/
+ai4animationpy-main/
+tmp/
+dist/
+node_modules/
+AGENT_HANDOFF.md
+asset/sound/*.xlsx
+*.log
