@@ -26,3 +26,15 @@ http://127.0.0.1:4173/web/
 - `asset/`: sprite, UI, audio, tile, obstacle, dan asset sekolah
 - `serve.js`: server lokal sederhana untuk menjalankan game
 - `run_browser_game.ps1`: helper PowerShell untuk menjalankan game
+
+## Deploy ke GitHub Pages
+
+Repo ini sudah disiapkan dengan GitHub Actions di `.github/workflows/deploy-pages.yml`.
+
+Setelah repo dipush ke GitHub:
+
+1. Buka **Settings > Pages**
+2. Pada **Build and deployment**, pilih **GitHub Actions**
+3. Push ke branch `main`, atau jalankan workflow **Deploy GitHub Pages** secara manual
+
+Workflow akan mempublish isi `web/` sebagai root website dan menyalin `asset/` ke output Pages.

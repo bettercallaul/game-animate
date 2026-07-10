@@ -5,7 +5,11 @@ ctx.imageSmoothingEnabled = false;
 const W = canvas.width;
 const H = canvas.height;
 const WORLD = { w: 2560, h: 1440 };
-const ASSET_ROOT = "../../asset";
+const pageRoot = new URL(".", window.location.href);
+const assetRootUrl = pageRoot.pathname.endsWith("/web/")
+  ? new URL("../asset/", pageRoot)
+  : new URL("asset/", pageRoot);
+const ASSET_ROOT = assetRootUrl.href.replace(/\/$/, "");
 const TILE = 96;
 const TRIM_PADDING = 8;
 const ROAD_RECTS = [
