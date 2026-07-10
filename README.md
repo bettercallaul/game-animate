@@ -38,3 +38,15 @@ Setelah repo dipush ke GitHub:
 3. Push ke branch `main`, atau jalankan workflow **Deploy GitHub Pages** secara manual
 
 Workflow akan mempublish isi `web/` sebagai root website dan menyalin `asset/` ke output Pages.
+
+## Deploy ke Vercel
+
+Project ini memiliki build teroptimasi untuk Vercel. Build hanya menyertakan aset yang dipakai game, mengecilkan gambar besar, dan mengubah PNG menjadi WebP.
+
+```powershell
+npm install
+npm run build
+npx vercel --prod
+```
+
+Konfigurasi deployment berada di `vercel.json`, dengan hasil build di `dist/`.

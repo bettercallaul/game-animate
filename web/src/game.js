@@ -23,15 +23,6 @@ const ROAD_RECTS = [
 
 const assetPaths = {
   logo: `${ASSET_ROOT}/logo/logo_mbg_food_delivery.png`,
-  legacyLogo: `${ASSET_ROOT}/logo/hf_20260506_063145_4f1f1d55-737f-42a5-8e6e-bbb75b400493.png`,
-  legacyCar: `${ASSET_ROOT}/vehichles/1. 4-directions mbg car.png`,
-  legacyUpgradeCar: `${ASSET_ROOT}/vehichles/2. mbg-upgrade.png`,
-  legacyTraffic: `${ASSET_ROOT}/obstacles/3. traffic.png`,
-  legacySchools: `${ASSET_ROOT}/schools/4. multilevel.png`,
-  legacyFood: `${ASSET_ROOT}/lunch/2. set meal.png`,
-  legacyObstacles: `${ASSET_ROOT}/obstacles/1. obstacle.png`,
-  legacyProps: `${ASSET_ROOT}/tiles/1. tiles.png`,
-  legacyCity: `${ASSET_ROOT}/tiles/2. tiles.png`,
   vanUp: `${ASSET_ROOT}/vehichles/mbg_van_up.png`,
   vanDown: `${ASSET_ROOT}/vehichles/mbg_van_down.png`,
   vanLeft: `${ASSET_ROOT}/vehichles/mbg_van_left.png`,
@@ -82,68 +73,6 @@ const assetPaths = {
   sfxSuccess: `${ASSET_ROOT}/sound/sfx_success.wav`,
   sfxCar: `${ASSET_ROOT}/sound/sfx_mbg_car.wav`,
   sfxCarUpgrade: `${ASSET_ROOT}/sound/sfx_mbg_car-upgrade.wav`,
-};
-
-const atlas = {
-  car: {
-    up: [140, 130, 390, 680],
-    down: [130, 790, 410, 640],
-    left: [1080, 250, 740, 410],
-    right: [1930, 250, 650, 410],
-  },
-  car2: {
-    up: [160, 120, 370, 650],
-    down: [150, 790, 390, 620],
-    left: [1050, 820, 760, 420],
-    right: [1870, 820, 720, 420],
-  },
-  schools: [
-    [42, 106, 728, 612],
-    [986, 88, 728, 636],
-    [1812, 52, 805, 646],
-    [378, 810, 810, 620],
-    [1536, 850, 830, 580],
-  ],
-  props: {
-    tree: [78, 158, 270, 520],
-    lamp: [692, 92, 190, 675],
-    cone: [150, 1040, 180, 250],
-    shop: [1990, 80, 550, 705],
-    busStop: [1125, 255, 585, 525],
-    sign: [890, 940, 360, 470],
-  },
-  city: {
-    schoolSmall: [36, 70, 580, 310],
-    court: [710, 96, 380, 292],
-    parking: [1128, 76, 458, 308],
-    park: [1984, 340, 496, 220],
-    roadV: [38, 760, 90, 184],
-    roadH: [298, 760, 184, 90],
-    roadHyellow: [300, 760, 184, 90],
-    crosswalk: [490, 760, 132, 186],
-    corner: [824, 760, 138, 186],
-    sidewalk: [1140, 760, 84, 184],
-    parkedWhite: [50, 1580, 150, 116],
-    parkedOrange: [275, 1580, 150, 116],
-    parkedGreen: [500, 1580, 150, 116],
-  },
-  food: [
-    [96, 90, 450, 450],
-    [650, 100, 470, 430],
-    [1210, 120, 430, 420],
-  ],
-  obstacle: [
-    [110, 120, 570, 470],
-    [780, 160, 560, 420],
-    [1500, 120, 550, 450],
-  ],
-  traffic: [
-    [112, 250, 330, 520],
-    [625, 72, 390, 700],
-    [1210, 272, 240, 470],
-    [1582, 206, 390, 555],
-    [2190, 76, 390, 690],
-  ],
 };
 
 const levels = [
@@ -295,6 +224,7 @@ const levels = [
 
 const state = {
   screen: "loading",
+  loadingProgress: 0,
   levelIndex: 0,
   delivered: 0,
   score: 0,
@@ -356,13 +286,13 @@ function initAudio() {
     if (key.startsWith("music")) {
       const a = new Audio(src);
       a.loop = true;
-      a.preload = "auto";
+      a.preload = "metadata";
       a.volume = 0;
       audio[key] = a;
     } else if (key.startsWith("sfx")) {
       const a = new Audio(src);
       a.loop = key === "sfxCar" || key === "sfxCarUpgrade";
-      a.preload = "auto";
+      a.preload = "none";
       a.volume = key === "sfxCar" || key === "sfxCarUpgrade" ? 0 : 0.58;
       audio[key] = a;
     }
@@ -374,17 +304,17 @@ async function unlockAudio() {
   initAudio();
   if (audioState.unlocked) return;
   audioState.unlocked = true;
-  for (const track of Object.values(audio)) {
-    track.muted = true;
-    try {
-      await track.play();
-      track.pause();
-      track.currentTime = 0;
-    } catch {
-      // Browser may still defer playback; future user gestures will retry.
-    }
-    track.muted = false;
+  const track = audio[audioState.target] || audio.musicMenu;
+  if (!track) return;
+  track.muted = true;
+  try {
+    await track.play();
+    track.pause();
+    track.currentTime = 0;
+  } catch {
+    // Browser may still defer playback; future user gestures will retry.
   }
+  track.muted = false;
 }
 
 function bgmVolume(key) {
@@ -522,16 +452,23 @@ function stopBgm() {
 }
 
 async function boot() {
-  await Promise.all(Object.entries(assetPaths).filter(([, v]) => v.endsWith(".png")).map(([k, v]) => loadImage(k, v)));
+  const imageEntries = Object.entries(assetPaths).filter(([, src]) => /\.(png|webp)$/.test(src));
+  let loaded = 0;
+  await Promise.all(
+    imageEntries.map(async ([key, src]) => {
+      await loadImage(key, src);
+      loaded += 1;
+      state.loadingProgress = loaded / imageEntries.length;
+    })
+  );
   buildSprites();
   initAudio();
   state.screen = "menu";
   playBgm("musicMenu");
-  requestAnimationFrame(loop);
 }
 
 function buildSprites() {
-  sprites.logo = directSprite("logo") || cropSprite("legacyLogo", [0, 0, 2688, 1520]);
+  sprites.logo = directSprite("logo");
   sprites.carDirections = {
     up: directSprite("vanUp"),
     down: directSprite("vanDown"),
@@ -544,41 +481,39 @@ function buildSprites() {
     left: directSprite("vanUpgradeLeft"),
     right: directSprite("vanUpgradeRight"),
   };
-  sprites.car = sprites.carDirections.up || cropSprite("legacyCar", [142, 128, 386, 668]);
-  sprites.car2 = sprites.car2Directions.down || cropSprite("legacyUpgradeCar", [150, 788, 400, 640]);
-  sprites.car2Side = sprites.car2Directions.right || cropSprite("legacyUpgradeCar", atlas.car2.right);
+  sprites.car = sprites.carDirections.up;
+  sprites.car2 = sprites.car2Directions.down;
+  sprites.car2Side = sprites.car2Directions.right;
   sprites.schools = [
     directSprite("schoolSd"),
     directSprite("schoolSmp"),
     directSprite("schoolSma"),
     directSprite("schoolSmk"),
     directSprite("schoolDesa"),
-  ].map((sprite, i) => sprite || cropSprite("legacySchools", atlas.schools[i]));
-  sprites.food = [directSprite("foodTray"), directSprite("milk"), directSprite("fruits")].map(
-    (sprite, i) => sprite || cropSprite("legacyFood", atlas.food[i])
-  );
+  ];
+  sprites.food = [directSprite("foodTray"), directSprite("milk"), directSprite("fruits")];
   sprites.obstacles = [
     directSprite("trafficCone"),
-    directSprite("roadwork") || cropSprite("legacyObstacles", atlas.obstacle[1]),
-    directSprite("puddle") || cropSprite("legacyObstacles", atlas.obstacle[2]),
+    directSprite("roadwork"),
+    directSprite("puddle"),
   ];
-  sprites.traffic = atlas.traffic.map((crop) => cropSprite("legacyTraffic", crop));
+  sprites.traffic = [];
   sprites.trafficJam = {
     h: directSprite("trafficJamH"),
     v: directSprite("trafficJamV"),
   };
   sprites.props = {
-    tree: directSprite("tree1") || cropSprite("legacyProps", atlas.props.tree),
+    tree: directSprite("tree1"),
     tree2: directSprite("tree2"),
-    lamp: directSprite("streetLamp") || cropSprite("legacyProps", atlas.props.lamp),
-    cone: directSprite("trafficCone") || cropSprite("legacyProps", atlas.props.cone),
-    shop: directSprite("shopSembako") || cropSprite("legacyProps", atlas.props.shop),
-    busStop: directSprite("busStop") || cropSprite("legacyProps", atlas.props.busStop),
-    sign: directSprite("roadSign") || cropSprite("legacyProps", atlas.props.sign),
+    lamp: directSprite("streetLamp"),
+    cone: directSprite("trafficCone"),
+    shop: directSprite("shopSembako"),
+    busStop: directSprite("busStop"),
+    sign: directSprite("roadSign"),
     foodStallMie: directSprite("foodStallMie"),
     foodStallNasgor: directSprite("foodStallNasgor"),
   };
-  sprites.city = Object.fromEntries(Object.entries(atlas.city).map(([key, crop]) => [key, cropSprite("legacyCity", crop)]));
+  sprites.city = {};
   sprites.tiles = {
     grass: directSprite("grass", false),
     roadH: directSprite("roadHorizontal", false),
@@ -849,6 +784,7 @@ function registerCrash() {
 
 function update(dt) {
   updateDeliveryFx(dt);
+  if (state.screen === "loading") return;
   updateCarSfx(dt);
   if (state.screen !== "play") return;
   if (state.paused) return;
@@ -1020,7 +956,15 @@ function updateDeliveryFx(dt) {
 function draw() {
   ctx.clearRect(0, 0, W, H);
   if (state.screen === "loading") {
-    drawPanel(390, 290, 500, 130, "Loading assets...");
+    ctx.fillStyle = "#173034";
+    ctx.fillRect(0, 0, W, H);
+    drawPanel(390, 260, 500, 180, "Menyiapkan Pengiriman");
+    const progress = clamp(state.loadingProgress, 0, 1);
+    ctx.fillStyle = "#10191c";
+    ctx.fillRect(438, 360, 404, 26);
+    ctx.fillStyle = "#f7cf4a";
+    ctx.fillRect(442, 364, 396 * progress, 18);
+    text(`${Math.round(progress * 100)}%`, 640, 420, 20, "#dff7ef", "center");
     return;
   }
   if (state.screen === "menu") return drawMenu();
@@ -1746,4 +1690,5 @@ document.querySelectorAll("#touchControls button").forEach((btn) => {
   btn.addEventListener("pointerleave", () => hold && state.keys.delete(hold));
 });
 
+requestAnimationFrame(loop);
 boot();

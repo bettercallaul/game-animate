@@ -23,6 +23,7 @@ __pycache__/
 *.log
 .env
 .env.*
+.vercel/
 
 # OS/editor noise.
 .DS_Store
